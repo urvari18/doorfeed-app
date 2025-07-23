@@ -10,3 +10,8 @@ resource "aws_s3_bucket" "app_bucket" {
 output "bucket_name" {
   value = aws_s3_bucket.app_bucket.id
 }
+
+resource "aws_cloudwatch_log_group" "app_logs" {
+  name = "/doorfeed/${var.env}/app"
+  retention_in_days = 14
+}

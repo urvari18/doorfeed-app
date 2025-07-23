@@ -70,6 +70,5 @@ jobs:
 
       - name: Deploy with Terraform
         run: |
-          cd terraform/prod
           terraform init
           terraform apply -auto-approve

@@ -53,10 +53,10 @@ jobs:
       - name: Run Tests
         run: npm test
 
-  deploy:
+  deploy-dev:
     needs: build
     runs-on: ubuntu-latest
-    environment: production
+    environment: Dev
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -77,4 +77,56 @@ jobs:
       - name: Deploy with Terraform
         run: |
           terraform init
-          terraform apply -var="env=dev"
+          terraform apply -auto-approve -var="env=dev"
+ 
+  deploy-staging:
+    needs: deploy-dev
+    runs-on: ubuntu-latest
+    environment: Statging
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+          
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.6.6
+
+      - name: Deploy with Terraform
+        run: |
+          terraform init
+          terraform apply -auto-approve -var="env=staging"
+
+  deploy-production:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    environment: Production
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+          
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.6.6
+
+      - name: Deploy with Terraform
+        run: |
+          terraform init
+          terraform apply -auto-approve -var="env=prod"
